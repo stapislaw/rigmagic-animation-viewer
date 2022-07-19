@@ -1,4 +1,3 @@
-import styled from 'styled-components';
 import './App.css';
 import { AnimationSelector } from './components/AnimationSelector';
 import { SelectBox } from './components/SelectBox';

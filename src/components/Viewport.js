@@ -1,33 +1,8 @@
 import { useEffect, useRef } from "react";
 import * as PIXI from "pixi.js";
-import { CharacterController } from "../api/character-controller";
-
-const vertexSrc = `
-    precision mediump float;
-
-    attribute vec2 aPos;
-    attribute vec2 aUvs;
-
-    uniform mat3 translationMatrix;
-    uniform mat3 projectionMatrix;
-
-    varying vec2 vUvs;
-
-    void main() {
-        vUvs = aUvs;
-        gl_Position = vec4((projectionMatrix * translationMatrix * vec3(aPos, 1.0)).xy, 0.0, 1.0);
-    }`;
-
-const fragmentSrc = `
-    precision mediump float;
-
-    varying vec2 vUvs;
-
-    uniform sampler2D uSampler2;
-
-    void main() {
-        gl_FragColor = texture2D(uSampler2, vUvs);
-    }`;
+import { State } from "../api/state";
+import { SHADER } from "./SHADER";
+import { CONFIG } from "../CONFIG";
 
 export function Viewport() {
     const canvasRef = useRef(null);
@@ -38,73 +13,88 @@ export function Viewport() {
         resizeTo: window
     });
 
+    let mesh = null;
+
+    const _buildMesh = () => {
+        const texture = new PIXI.Texture.from(State.getTexture());
+        const instance = State.getInstance();
+        
+        const geometry = new PIXI.Geometry()
+        .addAttribute('aPos', instance.getVertices(), 2)
+        .addAttribute('aUvs', instance.getTexCoords(), 2)
+        .addIndex(instance.getIndices());
+
+        const uniforms = { uSampler2: texture };
+        const shader = PIXI.Shader.from(SHADER.vertex, SHADER.fragment, uniforms);
+
+        mesh = new PIXI.Mesh(geometry, shader);
+
+        app.stage.addChild(mesh);
+        mesh.scale.set(40, 40);
+        mesh.position.set(app.renderer.width / 2, app.renderer.height / 2);
+    }
+
+    const _handleState = () => {
+        if(mesh) {
+            app.stage.removeChild(mesh);
+            mesh = null;
+        }
+        
+        if(State.getInstance() !== null) {
+            _buildMesh();
+        }
+    };
+
+    app.ticker.add((delta) => {
+        const instance = State.getInstance();
+        if(mesh !== null && instance !== null) {
+            mesh.geometry.getBuffer('aPos').update(instance.getVertices());
+
+            const pos = State.getPosition();
+            mesh.position.set(app.renderer.width * (1/2 + pos.x), app.renderer.height * (1 / 2 + pos.y));
+            mesh.scale.set(40 * pos.zoom, 40 * pos.zoom);
+        }
+    });
+
     useEffect(() => {
         const canvas = canvasRef.current;
         canvas.appendChild(app.view);
         app.resize();
+        _initCanvasEvents(canvas);
 
-        let moving = false;
-        let x = 0.0, y = 0.0, zoom = 1.0;
-        let mesh = null;
-
-        const handleChange = (url, character, _instance) => {
-            console.log("onChange", url, character, _instance);
-            const texture = new PIXI.Texture.from(url);
-
-            const geometry = new PIXI.Geometry()
-            .addAttribute('aPos', _instance.getVertices(), 2)
-            .addAttribute('aUvs', _instance.getTexCoords(), 2)
-            .addIndex(_instance.getIndices());
-
-            const uniforms = { uSampler2: texture };
-
-            const shader = PIXI.Shader.from(vertexSrc, fragmentSrc, uniforms);
-
-            mesh = new PIXI.Mesh(geometry, shader);
-
-            x = y = 0.0;
-            zoom = 1.0;
-            mesh.scale.set(40, 40);
-            mesh.position.set(app.renderer.width / 2, app.renderer.height / 2);
-
-            app.stage.addChild(mesh);
-
-            app.ticker.add((delta) => {
-                geometry.getBuffer('aPos').update(_instance.getVertices());
-                mesh.position.set(app.renderer.width * (1/2 + x), app.renderer.height * (1 / 2 + y));
-                mesh.scale.set(40 * zoom, 40 * zoom);
-                // app.render(app.stage);
-            });
-        };
-
-        canvas.onmousedown = (e) => {
-            if(e.button === 0 && mesh !== null) {
-                moving = true;
-            }
-        };
-
-        canvas.onmouseup = (e) => {
-            moving = false;
-        };
-
-        canvas.onmousemove = (e) => {
-            if(moving) {
-                x += e.movementX / zoom / 600;
-                y += e.movementY / zoom / 600;
-            }
-        };
-
-        canvas.onwheel = (e) => {
-            zoom -= e.deltaY / 200;
-            zoom = Math.max(Math.min(zoom, 4.0), 0.15);
-        }
-
-        CharacterController.onChange(handleChange);
-
+        State.onStateChange(_handleState);
         return () => {
-            CharacterController.removeChangeListener(handleChange);
+            State.removeStateListener(_handleState);
         };    
     });
 
     return (<div id={"canvas"} ref={canvasRef}></div>);
+}
+
+const _initCanvasEvents = (canvas) => {
+    let moving = false;
+
+    canvas.onmousedown = (e) => {
+        if(e.button === 0 && State.getInstance() !== null) {
+            moving = true;
+        }
+    };
+
+    canvas.onmouseup = (e) => {
+        moving = false;
+    };
+
+    canvas.onmousemove = (e) => {
+        if(moving) {
+            const pos = State.getPosition();
+            pos.x += e.movementX / Math.max(pos.zoom, 1) * CONFIG.move_factor;
+            pos.y += e.movementY / Math.max(pos.zoom, 1) * CONFIG.move_factor;
+        }
+    };
+
+    canvas.onwheel = (e) => {
+        const pos = State.getPosition();
+        pos.zoom -= e.deltaY * CONFIG.zoom_factor;
+        pos.zoom = Math.max(Math.min(pos.zoom, 4.0), 0.15);
+    }
 }
