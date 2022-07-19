@@ -24,6 +24,7 @@ export function OpenBox() {
                 <h1>Open file</h1>
                 <FromDriveForm/>
                 <SamplesForm/>
+                <Copyright/>
             </div>
         </div>
     );
@@ -64,4 +65,8 @@ const SamplesForm = () => {
             </div>
         </div>
     );
+}
+
+const Copyright = () => {
+    return <label id="copyright">&copy; 2022 Aleksander Piluk</label>
 }

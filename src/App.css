@@ -124,3 +124,10 @@ label {
   font-size: 2vh;
   margin-right: 0.2vh;
 }
+
+#copyright {
+  position: absolute;
+  bottom: 2px;
+  right: 4px;
+  font-size: 14px;
+}
