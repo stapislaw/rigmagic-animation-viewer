@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/rigmagic-animation-viewer/static/css/main.f8f49ee3.css",
+    "main.js": "/rigmagic-animation-viewer/static/js/main.d89aa059.js",
+    "static/js/787.41d264ec.chunk.js": "/rigmagic-animation-viewer/static/js/787.41d264ec.chunk.js",
+    "index.html": "/rigmagic-animation-viewer/index.html",
+    "main.f8f49ee3.css.map": "/rigmagic-animation-viewer/static/css/main.f8f49ee3.css.map",
+    "main.d89aa059.js.map": "/rigmagic-animation-viewer/static/js/main.d89aa059.js.map",
+    "787.41d264ec.chunk.js.map": "/rigmagic-animation-viewer/static/js/787.41d264ec.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.f8f49ee3.css",
+    "static/js/main.d89aa059.js"
+  ]
+}
