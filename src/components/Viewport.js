@@ -8,7 +8,7 @@ export function Viewport() {
     const canvasRef = useRef(null);
 
     const app = new PIXI.Application({
-        backgroundColor: 0x1c2936,
+        backgroundColor: CONFIG.canvas_bcg,
         resolution: window.devicePixelRatio || 1,
         resizeTo: window
     });
@@ -45,7 +45,7 @@ export function Viewport() {
         }
     };
 
-    app.ticker.add((delta) => {
+    app.ticker.add(() => {
         const instance = State.getInstance();
         if(mesh !== null && instance !== null) {
             mesh.geometry.getBuffer('aPos').update(instance.getVertices());

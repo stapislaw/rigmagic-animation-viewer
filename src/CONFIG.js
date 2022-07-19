@@ -1,4 +1,5 @@
 export const CONFIG = {
+    canvas_bcg: 0x1c2936,
     samples: [
         "robot"
     ],

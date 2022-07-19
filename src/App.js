@@ -1,14 +1,14 @@
 import './App.css';
 import { AnimationSelector } from './components/AnimationSelector';
-import { SelectBox } from './components/SelectBox';
+import { OpenBox } from './components/OpenBox';
 import { Viewport } from './components/Viewport';
 
 function App() {
   return (
     <div id="container">
-        <Viewport></Viewport>
+        <Viewport/>
         <AnimationSelector/>
-        <SelectBox/>
+        <OpenBox/>
     </div>
   );
 }
